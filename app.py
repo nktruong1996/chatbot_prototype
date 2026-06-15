@@ -42,6 +42,18 @@ with st.sidebar:
                     st.error(f"❌ Upload failed: {response.text}")
 
     st.divider()
+    st.subheader("Knowledge Base")
+    try:
+        stats = requests.get(f"{API_BASE}/ai/documents/stats")
+        if stats.status_code == 200:
+            data = stats.json()
+            st.metric("Total Documents", data["total_documents"])
+            st.metric("Total Chunks", data["total_chunks"])
+        else:
+            st.caption("Could not fetch stats")
+    except:
+        st.caption("Could not connect to API")
+    st.divider()
     if st.button("🗑️ Clear Chat"):
         st.session_state.messages = []
         st.rerun()

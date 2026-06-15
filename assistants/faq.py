@@ -4,7 +4,9 @@ from models import FAQRequest, FAQResponse
 from retrieval_sql import retrieve
 from prompts import (
     INTENT_PROMPT,
+    INTENT_PROMPT_2,
     FAQ_SYSTEM_PROMPT,
+    FAQ_SYSTEM_PROMPT_2,
     FAQ_NO_CONTEXT_NOTE,
     FAQ_TIER1_RESPONSE,
     FAQ_TIER2_RESPONSE,
@@ -39,7 +41,7 @@ def detect_intent(message: str, history: list = []) -> str:
     if history:
         last_turns = history[-4:]
         context = "Recent conversation:\n" + "\n".join(f"{t.role}: {t.content}" for t in last_turns)
-    prompt = INTENT_PROMPT.format(message=message, context=context)
+    prompt = INTENT_PROMPT_2.format(message=message, context=context)
 
     response = client.chat.completions.create(
         model=CHAT_MODEL,
@@ -94,10 +96,13 @@ def handle_faq(req: FAQRequest) -> FAQResponse:
 
     # 2. Retrieve relevant chunks
     chunks = retrieve(req.message)
+    print(f"[debug] Retrieved {len(chunks)} chunks for: {req.message}")
+    for i, c in enumerate(chunks):
+        print(f"[debug] Chunk {i}: {c[:100]}")
     context = "\n\n---\n\n".join(chunks) if chunks else FAQ_NO_CONTEXT_NOTE
 
     # 3. Build messages
-    messages = [{"role": "system", "content": FAQ_SYSTEM_PROMPT.format(context=context)}]
+    messages = [{"role": "system", "content": FAQ_SYSTEM_PROMPT_2.format(context=context)}]
 
     for turn in req.history:
         messages.append({"role": turn.role, "content": turn.content})
@@ -112,6 +117,9 @@ def handle_faq(req: FAQRequest) -> FAQResponse:
         temperature=0.3,
     )
     answer = response.choices[0].message.content.strip()
+    print(f"[debug] Raw LLM answer: {answer}")
+    print(f"[debug] seems_uncertain: {seems_uncertain(answer)}")
+    print(f"[debug] chunks found: {bool(chunks)}")
 
     # 5. Tier 2 fallback
     if seems_uncertain(answer) or not chunks:
