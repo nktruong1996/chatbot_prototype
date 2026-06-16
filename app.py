@@ -1,7 +1,9 @@
 import streamlit as st
 import requests
+from config import INTERNAL_API_KEY
 
 API_BASE = "http://localhost:8000"
+HEADERS = {"X-API-Key": INTERNAL_API_KEY}
 
 st.set_page_config(page_title="MOE e-Service FAQ Assistant", page_icon="🎓")
 st.title("🎓 MOE e-Service FAQ Assistant")
@@ -31,6 +33,7 @@ with st.sidebar:
                 response = requests.post(
                     f"{API_BASE}/ai/documents/upload",
                     files={"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")},
+                    headers=HEADERS,
                 )
                 if response.status_code == 200:
                     data = response.json()
@@ -44,7 +47,7 @@ with st.sidebar:
     st.divider()
     st.subheader("Knowledge Base")
     try:
-        stats = requests.get(f"{API_BASE}/ai/documents/stats")
+        stats = requests.get(f"{API_BASE}/ai/documents/stats", headers=HEADERS)
         if stats.status_code == 200:
             data = stats.json()
             st.metric("Total Documents", data["total_documents"])
@@ -94,6 +97,7 @@ if prompt := st.chat_input("Ask a question about the MOE e-Service portal..."):
                     "history": history_payload,
                     "user_id": "streamlit-user",
                 },
+                headers=HEADERS,
             )
 
         if response.status_code == 200:

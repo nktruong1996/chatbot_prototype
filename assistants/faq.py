@@ -35,7 +35,7 @@ from prompts import (
 #     return "PORTAL"
 
 def detect_intent(message: str, history: list = []) -> str:
-    """Returns 'PORTAL' or 'OFF_TOPIC'. Defaults to OFF_TOPIC if unexpected output."""
+    """Returns 'PORTAL', 'OFF_TOPIC', or 'GREETING'. Defaults to OFF_TOPIC if unexpected output."""
     # prompt = INTENT_PROMPT.format(message=message)
     context = ""
     if history:
@@ -51,7 +51,7 @@ def detect_intent(message: str, history: list = []) -> str:
     )
     raw = response.choices[0].message.content.strip().upper()
 
-    if raw in ("PORTAL", "OFF_TOPIC"):
+    if raw in ("PORTAL", "OFF_TOPIC", "GREETING"):
         return raw
 
     print(f"[intent] Unexpected output '{raw}', defaulting to OFF_TOPIC")
@@ -85,12 +85,21 @@ def handle_faq(req: FAQRequest) -> FAQResponse:
     # 1. Intent detection
     # intent = detect_intent(req.message)
     intent = detect_intent(req.message, req.history)
+    print(f"[debug] Intent detected: {intent}")
 
     if intent == "OFF_TOPIC":
         return FAQResponse(
             answer=FAQ_TIER1_RESPONSE,
             fallback=True,
             fallback_type="tier1",
+            support_contact=None,
+        )
+    
+    if intent == "GREETING":
+        return FAQResponse(
+            answer="Hello! How can I assist you with the MOE e-Service portal today?",
+            fallback=False,
+            fallback_type=None,
             support_contact=None,
         )
 
