@@ -1,5 +1,8 @@
 import os
 from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- OpenAI Client ---
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
@@ -27,8 +30,10 @@ INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "dev-secret-key")
 # --- Database ---
 DB_CONNECTION_STRING = (
     "DRIVER={ODBC Driver 18 for SQL Server};"
-    "SERVER=(localdb)\\MSSQLLocalDB;"
+    "SERVER=.;"
+    "UID=sa;"
+    "PWD=12345;"
     "DATABASE=moe_ai_prototype;"
-    "Integrated Security=SSPI;"
+    # "Integrated Security=SSPI;"
     "TrustServerCertificate=yes;"
 )

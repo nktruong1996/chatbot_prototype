@@ -6,3 +6,4 @@ pydantic
 pdfplumber
 streamlit
 pyodbc
+python-dotenv
