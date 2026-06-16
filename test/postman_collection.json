@@ -1,0 +1,174 @@
+{
+	"info": {
+		"_postman_id": "b345a2c4-850f-4e08-9572-c51f33f6756f",
+		"name": "Chatbot Prototype API",
+		"description": "Postman collection for testing the chatbot prototype APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/health",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Documents Stats",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/ai/documents/stats",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"ai",
+						"documents",
+						"stats"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Documents Chunks",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/ai/documents/chunks",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"ai",
+						"documents",
+						"chunks"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Ingest Document (Text API)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"text\": \"This is a sample document for testing the chunking and embedding process.\",\n  \"source_label\": \"sample_doc.txt\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/ai/documents/ingest",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"ai",
+						"documents",
+						"ingest"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload Document (PDF File)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": []
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8000/ai/documents/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"ai",
+						"documents",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "FAQ Chat",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"message\": \"What is the main purpose of this service?\",\n  \"history\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Hello\"\n    },\n    {\n      \"role\": \"assistant\",\n      \"content\": \"Hi! How can I help you today?\"\n    }\n  ],\n  \"user_id\": \"test-user-1\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/ai/faq/chat",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"ai",
+						"faq",
+						"chat"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

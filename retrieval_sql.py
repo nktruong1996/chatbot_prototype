@@ -143,7 +143,7 @@ def recency_boost(uploaded_at: datetime, all_dates: list[datetime]) -> float:
 def retrieve(query: str, top_k: int = TOP_K_CHUNKS) -> list[str]:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT chunk_id, text, embedding, uploaded_at FROM chunks")
+    cursor.execute("SELECT chunk_id, text, embedding, CAST(uploaded_at AS DATETIME2) AS uploaded_at FROM chunks")
     rows = cursor.fetchall()
     conn.close()
 

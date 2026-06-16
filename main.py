@@ -88,7 +88,7 @@ async def get_chunks():
     from retrieval_sql import get_connection
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT chunk_id, doc_id, source_label, uploaded_at, text FROM chunks")
+    cursor.execute("SELECT chunk_id, doc_id, source_label, CAST(uploaded_at AS DATETIME2) AS uploaded_at, text FROM chunks")
     rows = cursor.fetchall()
     conn.close()
     return [
