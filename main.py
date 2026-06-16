@@ -1,7 +1,12 @@
-from fastapi import FastAPI, HTTPException, Form
+from fastapi import FastAPI, HTTPException, Form, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import APIKeyHeader
 
-from config import client, CHAT_MODEL
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
+from config import client, CHAT_MODEL, INTERNAL_API_KEY
 from models import FAQRequest, FAQResponse, HealthResponse, UploadRequest, UploadResponse
 from assistants.faq import handle_faq
 # from retrieval import ingest_document, get_store_stats
@@ -15,12 +20,23 @@ app = FastAPI(
     version="0.1.0",
 )
 
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], # Should be tightened to specific FE/BE domains in production
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=True)
+
+async def verify_api_key(api_key: str = Depends(api_key_header)):
+    if api_key != INTERNAL_API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid API Key")
+    return api_key
 
 
 # ---------------------------------------------------------------------------
@@ -28,7 +44,8 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 
 @app.get("/health", response_model=HealthResponse)
-async def health_check():
+@limiter.limit("60/minute")
+async def health_check(request: Request):
     try:
         response = client.chat.completions.create(
             model=CHAT_MODEL,
@@ -55,7 +72,8 @@ async def health_check():
 # ---------------------------------------------------------------------------
 
 @app.post("/ai/documents/ingest", response_model=UploadResponse)
-async def ingest_doc(req: UploadRequest):
+@limiter.limit("100/minute")
+async def ingest_doc(request: Request, req: UploadRequest, api_key: str = Depends(verify_api_key)):
     if not req.text.strip():
         raise HTTPException(status_code=400, detail="Empty document text")
 
@@ -84,7 +102,8 @@ async def ingest_doc(req: UploadRequest):
 #     ]
 
 @app.get("/ai/documents/chunks") # for using SQL database
-async def get_chunks():
+@limiter.limit("100/minute")
+async def get_chunks(request: Request, api_key: str = Depends(verify_api_key)):
     from retrieval_sql import get_connection
     conn = get_connection()
     cursor = conn.cursor()
@@ -108,7 +127,8 @@ async def get_chunks():
 # Chunk stats (for testing)
 # ---------------------------------------------------------------------------
 @app.get("/ai/documents/stats")
-async def get_stats():
+@limiter.limit("100/minute")
+async def get_stats(request: Request, api_key: str = Depends(verify_api_key)):
     return get_store_stats()
 
 # ---------------------------------------------------------------------------
@@ -116,7 +136,8 @@ async def get_stats():
 # ---------------------------------------------------------------------------
 
 @app.post("/ai/faq/chat", response_model=FAQResponse)
-async def faq_chat(req: FAQRequest):
+@limiter.limit("100/minute")
+async def faq_chat(request: Request, req: FAQRequest, api_key: str = Depends(verify_api_key)):
     try:
         return handle_faq(req)
     except Exception as e:
@@ -146,7 +167,8 @@ async def faq_chat(req: FAQRequest):
 #     )
 
 @app.post("/ai/documents/upload", response_model=UploadResponse)
-async def upload_doc(file: UploadFile = File(...)):
+@limiter.limit("50/minute")
+async def upload_doc(request: Request, file: UploadFile = File(...), api_key: str = Depends(verify_api_key)):
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported for now")
 

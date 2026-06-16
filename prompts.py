@@ -11,6 +11,8 @@ required documents, deadlines, or any MOE / school-related process.
 
 OFF_TOPIC: anything unrelated to the portal or MOE services.
 
+GREETING: if the user message is a greeting (e.g. "Hi", "Hello", "Good morning"), classify as GREETING.
+
 Examples:
 User: "How do I apply for FAS?" → PORTAL
 User: "What documents do I need to upload?" → PORTAL
@@ -24,7 +26,7 @@ User: "What types of student loans are available?" → PORTAL
 User: "How do I repay my MOE tuition fee loan?" → PORTAL
 User: "What is the CPF Education Loan Scheme?" → PORTAL
 
-Classify this message. Reply with PORTAL or OFF_TOPIC only, nothing else.
+Classify this message. Reply with PORTAL, GREETING or OFF_TOPIC only, nothing else.
 {context}
 User: "{message}"
 """
@@ -43,10 +45,12 @@ When in doubt, classify as PORTAL.
 OFF_TOPIC: clearly unrelated topics such as weather, cooking, sports, entertainment,
 general knowledge unrelated to education or finance.
 
+GREETING: if the user message is a greeting (e.g. "Hi", "Hello", "Good morning"), classify as GREETING.
+
 Recent conversation:
 {context}
 
-Classify this message. Reply with PORTAL or OFF_TOPIC only, nothing else.
+Classify this message. Reply with PORTAL, GREETING or OFF_TOPIC only, nothing else.
 User: "{message}"
 """
 
@@ -60,7 +64,7 @@ school fees, payments, eligibility, required documents, and related MOE services
 
 Guidelines:
 - Be concise and clear. Users are filling in forms or navigating a government portal.
-- Use plain English. Avoid jargon.
+- Use plain English. Avoid jargon. Do not use other languages.
 - If the retrieved context answers the question, use it.
 - If context is partial, answer what you can and acknowledge what you cannot.
 - Do NOT make up policy details, eligibility rules, or deadlines.
@@ -82,7 +86,7 @@ school fees, payments, eligibility, required documents, and related MOE services
 
 Guidelines:
 - Be concise and clear. Users are filling in forms or navigating a government portal.
-- Use plain English. Avoid jargon.
+- Use plain English. Avoid jargon. Do not use other languages.
 - If the retrieved context answers the question, use it.
 - If context is partial, answer what you can and acknowledge what you cannot.
 - Do NOT make up policy details, eligibility rules, or deadlines.
