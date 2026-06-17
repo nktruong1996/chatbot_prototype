@@ -1,16 +1,23 @@
 import os
-from openai import OpenAI
 from dotenv import load_dotenv
+from openai import AzureOpenAI
 
 load_dotenv()
 
-# --- OpenAI Client ---
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-client = OpenAI(api_key=OPENAI_API_KEY)
+# --- Azure OpenAI Client ---
+AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY", "")
+AZURE_OPENAI_ENDPOINT = "https://eduopenainew.openai.azure.com/"
+AZURE_API_VERSION = "2024-02-01"
+
+client = AzureOpenAI(
+    api_key=AZURE_OPENAI_API_KEY,
+    azure_endpoint=AZURE_OPENAI_ENDPOINT,
+    api_version=AZURE_API_VERSION,
+)
 
 # --- Models ---
-CHAT_MODEL = "gpt-4o-mini"
-EMBEDDING_MODEL = "text-embedding-3-small"
+CHAT_MODEL = "gpt-5-mini"
+EMBEDDING_MODEL = "text-embedding-3-large"
 
 # --- RAG Settings ---
 CHUNK_SIZE = 400
@@ -30,9 +37,7 @@ INTERNAL_API_KEY = os.getenv("INTERNAL_API_KEY", "dev-secret-key")
 # --- Database ---
 DB_CONNECTION_STRING = (
     "DRIVER={ODBC Driver 18 for SQL Server};"
-    "SERVER=.;"
-    "UID=sa;"
-    "PWD=12345;"
+    "SERVER=(localdb)\\MSSQLLocalDB;"
     "DATABASE=moe_ai_prototype;"
     # "Integrated Security=SSPI;"
     "TrustServerCertificate=yes;"

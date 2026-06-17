@@ -17,22 +17,6 @@ from prompts import (
 # Intent detection
 # ---------------------------------------------------------------------------
 
-# def detect_intent(message: str) -> str:
-#     """Returns 'PORTAL' or 'OFF_TOPIC'. Defaults to PORTAL if unexpected output."""
-#     prompt = INTENT_PROMPT.format(message=message)
-#     response = client.chat.completions.create(
-#         model=CHAT_MODEL,
-#         messages=[{"role": "user", "content": prompt}],
-#         max_tokens=10,
-#         temperature=0,
-#     )
-#     raw = response.choices[0].message.content.strip().upper()
-
-#     if raw in ("PORTAL", "OFF_TOPIC"):
-#         return raw
-
-#     print(f"[intent] Unexpected output '{raw}', defaulting to PORTAL")
-#     return "PORTAL"
 
 def detect_intent(message: str, history: list = []) -> str:
     """Returns 'PORTAL', 'OFF_TOPIC', or 'GREETING'. Defaults to OFF_TOPIC if unexpected output."""
@@ -46,9 +30,11 @@ def detect_intent(message: str, history: list = []) -> str:
     response = client.chat.completions.create(
         model=CHAT_MODEL,
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=10,
-        temperature=0,
+        # max_tokens=10,
+        max_completion_tokens=300,
+        # temperature=0,
     )
+
     raw = response.choices[0].message.content.strip().upper()
 
     if raw in ("PORTAL", "OFF_TOPIC", "GREETING"):
@@ -56,6 +42,32 @@ def detect_intent(message: str, history: list = []) -> str:
 
     print(f"[intent] Unexpected output '{raw}', defaulting to OFF_TOPIC")
     return "OFF_TOPIC"
+
+# ---------------------------------------------------------------------------
+# Get last message from assistant
+# ---------------------------------------------------------------------------
+def get_last_assistant_message(history: list) -> str | None:
+    for turn in reversed(history):
+        if turn.role == "assistant":
+            return turn.content
+    return None
+
+# ---------------------------------------------------------------------------
+# Build context query
+# ---------------------------------------------------------------------------
+def build_contextual_query(message: str, history: list) -> str:
+    last_assistant = get_last_assistant_message(history)
+
+    if not last_assistant:
+        return message
+
+    return f"""
+Previous assistant answer:
+{last_assistant}
+
+Current user question:
+{message}
+""".strip()
 
 # ---------------------------------------------------------------------------
 # Confidence check
@@ -104,8 +116,15 @@ def handle_faq(req: FAQRequest) -> FAQResponse:
         )
 
     # 2. Retrieve relevant chunks
-    chunks = retrieve(req.message)
-    print(f"[debug] Retrieved {len(chunks)} chunks for: {req.message}")
+    # chunks = retrieve(req.message)
+    retrieval_query = build_contextual_query(req.message, req.history)
+
+    print(f"[debug] Retrieval query: {retrieval_query}")
+
+    chunks = retrieve(retrieval_query)
+
+    # print(f"[debug] Retrieved {len(chunks)} chunks for: {req.message}")
+    print(f"[debug] Retrieved {len(chunks)} chunks for contextual query")
     for i, c in enumerate(chunks):
         print(f"[debug] Chunk {i}: {c[:100]}")
     context = "\n\n---\n\n".join(chunks) if chunks else FAQ_NO_CONTEXT_NOTE
@@ -122,8 +141,9 @@ def handle_faq(req: FAQRequest) -> FAQResponse:
     response = client.chat.completions.create(
         model=CHAT_MODEL,
         messages=messages,
-        max_tokens=500,
-        temperature=0.3,
+        # max_tokens=500,
+        max_completion_tokens=800,
+        # temperature=0.3,
     )
     answer = response.choices[0].message.content.strip()
     print(f"[debug] Raw LLM answer: {answer}")

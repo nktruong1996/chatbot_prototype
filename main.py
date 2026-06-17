@@ -8,7 +8,7 @@ from slowapi.errors import RateLimitExceeded
 
 from config import client, CHAT_MODEL, INTERNAL_API_KEY
 from models import FAQRequest, FAQResponse, HealthResponse, UploadRequest, UploadResponse
-from assistants.faq import handle_faq
+from assistants.faq import handle_faq, detect_intent
 # from retrieval import ingest_document, get_store_stats
 from retrieval_sql import ingest_document, get_store_stats
 
@@ -50,7 +50,8 @@ async def health_check(request: Request):
         response = client.chat.completions.create(
             model=CHAT_MODEL,
             messages=[{"role": "user", "content": "Reply with the word OK only."}],
-            max_tokens=5,
+            # max_tokens=5,
+            max_completion_tokens=5,
         )
         connected = "ok" in response.choices[0].message.content.strip().lower()
     except Exception as e:
