@@ -17,7 +17,7 @@ client = AzureOpenAI(
 
 # --- Models ---
 CHAT_MODEL = "gpt-5-mini"
-EMBEDDING_MODEL = "text-embedding-3-large"
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 # --- RAG Settings ---
 CHUNK_SIZE = 400

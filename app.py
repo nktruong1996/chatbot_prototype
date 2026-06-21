@@ -17,17 +17,6 @@ with st.sidebar:
     uploaded_file = st.file_uploader("Upload a PDF", type=["pdf"])
 
     if uploaded_file:
-        # if st.button("Ingest Document"):
-        #     with st.spinner("Ingesting..."):
-        #         response = requests.post(
-        #             f"{API_BASE}/ai/documents/upload",
-        #             files={"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")},
-        #         )
-        #         if response.status_code == 200:
-        #             data = response.json()
-        #             st.success(f"✅ Ingested {data['chunks_stored']} chunks from '{uploaded_file.name}'")
-        #         else:
-        #             st.error(f"❌ Upload failed: {response.text}")
         if st.button("Ingest Document"):
             with st.spinner("Ingesting..."):
                 response = requests.post(
@@ -35,12 +24,14 @@ with st.sidebar:
                     files={"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")},
                     headers=HEADERS,
                 )
+
                 if response.status_code == 200:
                     data = response.json()
-                    if data["doc_id"] == "duplicate":
-                        st.warning(f"⚠️ {data['message']}")
+
+                    if data.get("skipped"):
+                        st.warning(f"⚠️ {data.get('message', data.get('reason', 'Document was skipped.'))}")
                     else:
-                        st.success(f"✅ {data['message']}")
+                        st.success(f"✅ {data.get('message', 'Document ingested successfully.')}")
                 else:
                     st.error(f"❌ Upload failed: {response.text}")
 
@@ -56,6 +47,7 @@ with st.sidebar:
             st.caption("Could not fetch stats")
     except:
         st.caption("Could not connect to API")
+
     st.divider()
     if st.button("🗑️ Clear Chat"):
         st.session_state.messages = []

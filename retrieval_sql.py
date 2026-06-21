@@ -5,9 +5,14 @@ from datetime import datetime, timezone
 from dataclasses import dataclass
 import pyodbc
 import hashlib
+from sentence_transformers import SentenceTransformer
 
-from config import client, EMBEDDING_MODEL, CHUNK_SIZE, CHUNK_OVERLAP, TOP_K_CHUNKS, RECENCY_WEIGHT, DB_CONNECTION_STRING
+from config import EMBEDDING_MODEL, CHUNK_SIZE, CHUNK_OVERLAP, TOP_K_CHUNKS, RECENCY_WEIGHT, DB_CONNECTION_STRING
 
+# ---------------------------------------------------------------------------
+# Local Embedding Model
+# ---------------------------------------------------------------------------
+_embedding_model = SentenceTransformer(EMBEDDING_MODEL)
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -53,10 +58,13 @@ def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVE
 # ---------------------------------------------------------------------------
 # Embedding
 # ---------------------------------------------------------------------------
-
 def embed_texts(texts: list[str]) -> list[list[float]]:
-    response = client.embeddings.create(model=EMBEDDING_MODEL, input=texts)
-    return [item.embedding for item in sorted(response.data, key=lambda x: x.index)]
+    embeddings = _embedding_model.encode(
+        texts,
+        normalize_embeddings=True,
+        show_progress_bar=False,
+    )
+    return embeddings.tolist()
 
 
 def embed_query(query: str) -> list[float]:

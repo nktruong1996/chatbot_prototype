@@ -8,3 +8,5 @@ streamlit
 pyodbc
 python-dotenv
 slowapi
+sentence-transformers
+torch

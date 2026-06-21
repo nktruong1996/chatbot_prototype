@@ -1,7 +1,7 @@
 from config import client, CHAT_MODEL, SUPPORT_CONTACT
 from models import FAQRequest, FAQResponse
 # from retrieval import retrieve
-from retrieval_sql import retrieve
+from retrieval_sql_v2 import retrieve
 from prompts import (
     INTENT_PROMPT,
     INTENT_PROMPT_2,
@@ -34,8 +34,16 @@ def detect_intent(message: str, history: list = []) -> str:
         max_completion_tokens=300,
         # temperature=0,
     )
+    if hasattr(response, "usage") and response.usage:
+        print(
+            f"[intent tokens] "
+            f"prompt={response.usage.prompt_tokens} "
+            f"completion={response.usage.completion_tokens} "
+            f"total={response.usage.total_tokens}"
+        )
 
     raw = response.choices[0].message.content.strip().upper()
+    print(f"[intent raw] {repr(raw)}")
 
     if raw in ("PORTAL", "OFF_TOPIC", "GREETING"):
         return raw
@@ -142,9 +150,16 @@ def handle_faq(req: FAQRequest) -> FAQResponse:
         model=CHAT_MODEL,
         messages=messages,
         # max_tokens=500,
-        max_completion_tokens=800,
+        max_completion_tokens=1500,
         # temperature=0.3,
     )
+    if hasattr(response, "usage") and response.usage:
+        print(
+            f"[tokens] "
+            f"prompt={response.usage.prompt_tokens} "
+            f"completion={response.usage.completion_tokens} "
+            f"total={response.usage.total_tokens}"
+        )
     answer = response.choices[0].message.content.strip()
     print(f"[debug] Raw LLM answer: {answer}")
     print(f"[debug] seems_uncertain: {seems_uncertain(answer)}")
